@@ -1,32 +1,45 @@
 import React, { useState } from 'react'
 import TextField from '@material-ui/core/TextField'
-import { InputLabel, Select, MenuItem, Button } from '@material-ui/core';
+import { InputLabel, Select, Button } from '@material-ui/core';
 
 export const Form = () => {
 
     const [formErrors, setFormErrors] = useState({ name: '', size: '', type: '' });
 
-    const handleSubmit = (e) => {
+    const [isSaving, setIsSaving] = useState(false);
+
+    const validateField = ({ name, value }) => {
+        setFormErrors(prevState => ({
+            ...prevState,
+            [name]: value.length ? '' : `The ${name} is required`,
+        }))
+    }
+
+    const validateForm = ({ name, size, type }) => {
+        validateField({ name: 'name', value: name })
+        validateField({ name: 'size', value: size })
+        validateField({ name: 'type', value: type })
+    }
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
+        setIsSaving(true)
 
         const { name, size, type } = e.target.elements;
 
-        if (!name.value) {
-            setFormErrors(prevState => ({ ...prevState, name: 'The name is required' }))
-        }
+        validateForm({ name: name.value, size: size.value, type: type.value })
 
-        if (!size.value) {
-            setFormErrors(prevState => ({ ...prevState, size: 'The size is required' }))
-        }
 
-        if (!type.value) {
-            setFormErrors(prevState => ({ ...prevState, type: 'The type is required' }))
-        }
+        await fetch('./products', { method: 'POST', body: JSON.stringify({}) })
+
+        setIsSaving(false)
+
     }
 
     const handleBlur = (e) => {
         const { name, value } = e.target;
-        setFormErrors({ ...formErrors, [name]: value.length === 0 ? `the ${name} is required` : '' })
+        validateField({ name, value })
     }
 
     return (
@@ -35,24 +48,23 @@ export const Form = () => {
             <form onSubmit={handleSubmit}>
                 <TextField label="name" id="name" name='name' helperText={formErrors.name} onBlur={handleBlur} />
                 <TextField label="size" id="size" name='size' helperText={formErrors.size} onBlur={handleBlur} />
-                <InputLabel htmlFor="type" helperText={formErrors.type}>type</InputLabel>
+                <InputLabel htmlFor="type" >type</InputLabel>
                 <Select
                     native
-                    id="demo-simple-select"
                     value=""
-                    onChange={undefined}
                     inputProps={{
                         name: 'type',
-                        id: 'type'
+                        id: 'type',
                     }}
                 >
-                    <MenuItem value='electronic'>electronic</MenuItem>
-                    <MenuItem value="furniture">furniture</MenuItem>
-                    <MenuItem value="clothing">clothing</MenuItem>
+                    <option aria-label="None" value="" />
+                    <option value="electronic">Electronic</option>
+                    <option value="furniture">Furniture</option>
+                    <option value="clothing">Clothing</option>
                 </Select>
                 {formErrors.type.length > 0 && <p>{formErrors.type}</p>}
 
-                <Button type='submit'>Submit</Button>
+                <Button disabled={isSaving} type='submit'>Submit</Button>
             </form>
         </>
     )
