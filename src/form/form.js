@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import TextField from '@material-ui/core/TextField'
 import { InputLabel, Select, Button } from '@material-ui/core';
 
+const saveProduct = () => fetch('./products', { method: 'POST', body: JSON.stringify({}) })
+
 export const Form = () => {
 
     const [formErrors, setFormErrors] = useState({ name: '', size: '', type: '' });
@@ -31,7 +33,7 @@ export const Form = () => {
         validateForm({ name: name.value, size: size.value, type: type.value })
 
 
-        await fetch('./products', { method: 'POST', body: JSON.stringify({}) })
+        await saveProduct()
 
         setIsSaving(false)
 
