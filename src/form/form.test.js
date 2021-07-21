@@ -3,10 +3,21 @@ import { screen, render, fireEvent, waitFor } from '@testing-library/react'
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { Form } from './form';
+import { CREATED_STATUS, ERROR_SERVER_STATUS } from '../consts/httpStatus'
 
 
 const server = setupServer(
-    rest.post('/products', (req, res, ctx) => res(ctx.status(201))),
+    rest.post('/products', (req, res, ctx) => {
+        const { name, size, type } = req.body;
+
+        console.log("req.body: ", req.body) // { name: 'my product', size: '10', type: 'electronic' }
+
+        if (name && size && type) {
+            return res(ctx.status(CREATED_STATUS))
+        }
+
+        return res(ctx.status(ERROR_SERVER_STATUS))
+    }),
 )
 
 beforeAll(() => server.listen());
@@ -114,5 +125,20 @@ describe("when the user submits the form", () => {
         expect(submitButton).toBeDisabled()
 
         await waitFor(() => expect(submitButton).not.toBeDisabled())
+    })
+
+    it('the form page must display the success messsage "product stored" and cleand the field values', async () => {
+        const submitButton = screen.getByRole('button', { name: /submit/i })
+        const nameInput = screen.getByLabelText(/name/i)
+        const sizeInput = screen.getByLabelText(/size/i)
+        const typeSelector = screen.getByLabelText(/type/i)
+
+        fireEvent.change(nameInput, { target: { name: 'name', value: 'my product' } })
+        fireEvent.change(sizeInput, { target: { name: 'size', value: '10' } })
+        fireEvent.change(typeSelector, { target: { name: 'type', value: 'electronic' } })
+
+        fireEvent.click(submitButton)
+
+        await waitFor(() => expect(screen.getByText(/product stored/i)).toBeInTheDocument())
     })
 })

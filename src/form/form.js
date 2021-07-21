@@ -1,14 +1,22 @@
 import React, { useState } from 'react'
 import TextField from '@material-ui/core/TextField'
 import { InputLabel, Select, Button } from '@material-ui/core';
+import { CREATED_STATUS } from '../consts/httpStatus'
 
-const saveProduct = () => fetch('./products', { method: 'POST', body: JSON.stringify({}) })
+const saveProduct = ({ name, size, type }) =>
+    fetch('./products',
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json ' },
+            body: JSON.stringify({ name, size, type })
+        })
 
 export const Form = () => {
 
     const [formErrors, setFormErrors] = useState({ name: '', size: '', type: '' });
 
     const [isSaving, setIsSaving] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const validateField = ({ name, value }) => {
         setFormErrors(prevState => ({
@@ -30,10 +38,16 @@ export const Form = () => {
 
         const { name, size, type } = e.target.elements;
 
-        validateForm({ name: name.value, size: size.value, type: type.value })
+        const formData = { name: name.value, size: size.value, type: type.value }
 
+        validateForm(formData)
 
-        await saveProduct()
+        console.log("data", formData)
+        const response = await saveProduct(formData)
+
+        if (response.status === CREATED_STATUS) {
+            setIsSuccess(true)
+        }
 
         setIsSaving(false)
 
@@ -47,13 +61,13 @@ export const Form = () => {
     return (
         <>
             <h1>create product</h1>
+            {isSuccess && (<p>product stored</p>)}
             <form onSubmit={handleSubmit}>
                 <TextField label="name" id="name" name='name' helperText={formErrors.name} onBlur={handleBlur} />
                 <TextField label="size" id="size" name='size' helperText={formErrors.size} onBlur={handleBlur} />
                 <InputLabel htmlFor="type" >type</InputLabel>
                 <Select
                     native
-                    value=""
                     inputProps={{
                         name: 'type',
                         id: 'type',
