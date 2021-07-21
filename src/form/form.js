@@ -4,12 +4,13 @@ import { InputLabel, Select, Button } from '@material-ui/core';
 import { CREATED_STATUS } from '../consts/httpStatus'
 
 const saveProduct = ({ name, size, type }) =>
-    fetch('./products',
-        {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json ' },
-            body: JSON.stringify({ name, size, type })
-        })
+    fetch('/products', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, size, type }),
+    })
 
 export const Form = () => {
 
@@ -42,11 +43,11 @@ export const Form = () => {
 
         validateForm(formData)
 
-        console.log("data", formData)
         const response = await saveProduct(formData)
 
         if (response.status === CREATED_STATUS) {
             setIsSuccess(true)
+            e.target.reset()
         }
 
         setIsSaving(false)

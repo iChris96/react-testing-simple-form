@@ -140,5 +140,10 @@ describe("when the user submits the form", () => {
         fireEvent.click(submitButton)
 
         await waitFor(() => expect(screen.getByText(/product stored/i)).toBeInTheDocument())
+
+        // if response is successful the form inputs should be empty again
+        expect(nameInput).toHaveValue('')
+        expect(sizeInput).toHaveValue('')
+        expect(typeSelector).toHaveValue('')
     })
 })
