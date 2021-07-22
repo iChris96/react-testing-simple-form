@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import TextField from '@material-ui/core/TextField'
 import { InputLabel, Select, Button } from '@material-ui/core';
-import { CREATED_STATUS, ERROR_SERVER_STATUS } from '../consts/httpStatus'
+import { CREATED_STATUS, ERROR_SERVER_STATUS, INVALID_REQUEST_STATUS } from '../consts/httpStatus'
 
 const saveProduct = ({ name, size, type }) =>
     fetch('/products', {
@@ -44,16 +44,29 @@ export const Form = () => {
 
         validateForm(formData)
 
-        const response = await saveProduct(formData)
+        try {
+            const response = await saveProduct(formData)
 
-        if (response.status === CREATED_STATUS) {
-            setIsSuccess(true)
-            e.target.reset()
+            if (!response.ok) throw response // throw respose as error
+
+            if (response.status === CREATED_STATUS) {
+                setIsSuccess(true)
+                e.target.reset()
+            }
+
+        } catch (err) {
+            if (err.status === ERROR_SERVER_STATUS) {
+                setErrorMessage('Unexpected error, please try again');
+            }
+
+            if (err.status === INVALID_REQUEST_STATUS) {
+                const data = await err.json();
+                setErrorMessage(data.message);
+            }
         }
 
-        if (response.status === ERROR_SERVER_STATUS) {
-            setErrorMessage('Unexpected error, please try again');
-        }
+
+
 
         setIsSaving(false)
 

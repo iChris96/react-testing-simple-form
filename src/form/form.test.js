@@ -3,7 +3,7 @@ import { screen, render, fireEvent, waitFor } from '@testing-library/react'
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { Form } from './form';
-import { CREATED_STATUS, ERROR_SERVER_STATUS } from '../consts/httpStatus'
+import { CREATED_STATUS, ERROR_SERVER_STATUS, INVALID_REQUEST_STATUS } from '../consts/httpStatus'
 
 
 const server = setupServer(
@@ -22,6 +22,7 @@ const server = setupServer(
 
 beforeAll(() => server.listen());
 afterAll(() => server.close());
+afterEach(() => server.resetHandlers()); // reset/clean server in case of overrided endpoints
 
 describe('form is mounted', () => {
 
@@ -160,6 +161,33 @@ describe("when the user submits the form unsuccessfully", () => {
 
         await waitFor(() => {
             const errorMessage = screen.getByText(/unexpected error, please try again/i);
+            expect(errorMessage).toBeInTheDocument();
+        })
+    })
+})
+
+describe("when the user submits the form and the server returns an unexpected error", () => {
+
+    beforeEach(() => render(<Form />));
+
+    it("the form page must display the error message 'the form is invalid, the fields [field1...fieldN] are required'", async () => {
+        server.use( // this override the current behavior for defined '/products' endpoint
+            rest.post('/products', (req, res, ctx) => res(
+                ctx.status(INVALID_REQUEST_STATUS),
+                ctx.json({
+                    message:
+                        'The form is invalid, the fields name, size, type are required',
+                }),
+            )),
+        )
+
+
+        const submitButton = screen.getByRole('button', { name: /submit/i })
+
+        fireEvent.click(submitButton)
+
+        await waitFor(() => {
+            const errorMessage = screen.getByText(/the form is invalid, the fields name, size, type are required/i);
             expect(errorMessage).toBeInTheDocument();
         })
     })
