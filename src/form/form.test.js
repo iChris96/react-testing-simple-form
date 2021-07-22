@@ -10,7 +10,7 @@ const server = setupServer(
     rest.post('/products', (req, res, ctx) => {
         const { name, size, type } = req.body;
 
-        console.log("req.body: ", req.body) // { name: 'my product', size: '10', type: 'electronic' }
+        // console.log("req.body: ", req.body) // { name: 'my product', size: '10', type: 'electronic' }
 
         if (name && size && type) {
             return res(ctx.status(CREATED_STATUS))
@@ -111,7 +111,7 @@ describe('when the user blurs and empty field', () => {
 })
 
 
-describe("when the user submits the form", () => {
+describe("when the user submits the form succesfully", () => {
 
     beforeEach(() => render(<Form />));
 
@@ -145,5 +145,22 @@ describe("when the user submits the form", () => {
         expect(nameInput).toHaveValue('')
         expect(sizeInput).toHaveValue('')
         expect(typeSelector).toHaveValue('')
+    })
+})
+
+
+describe("when the user submits the form unsuccessfully", () => {
+
+    beforeEach(() => render(<Form />));
+
+    it("the form page must display the error message 'Unexpected error, please try again'", async () => {
+        const submitButton = screen.getByRole('button', { name: /submit/i })
+
+        fireEvent.click(submitButton)
+
+        await waitFor(() => {
+            const errorMessage = screen.getByText(/unexpected error, please try again/i);
+            expect(errorMessage).toBeInTheDocument();
+        })
     })
 })
