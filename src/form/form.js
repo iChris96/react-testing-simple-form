@@ -33,6 +33,21 @@ export const Form = () => {
         validateField({ name: 'type', value: type })
     }
 
+    const handleErrorMessage = async (err) => {
+        if (err.status === ERROR_SERVER_STATUS) {
+            setErrorMessage('Unexpected error, please try again');
+            return
+        }
+
+        if (err.status === INVALID_REQUEST_STATUS) {
+            const data = await err.json();
+            setErrorMessage(data.message);
+            return
+        }
+
+        setErrorMessage('Connection error, please try later')
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -55,21 +70,10 @@ export const Form = () => {
             }
 
         } catch (err) {
-            if (err.status === ERROR_SERVER_STATUS) {
-                setErrorMessage('Unexpected error, please try again');
-            }
-
-            if (err.status === INVALID_REQUEST_STATUS) {
-                const data = await err.json();
-                setErrorMessage(data.message);
-            }
+            handleErrorMessage(err)
         }
 
-
-
-
         setIsSaving(false)
-
     }
 
     const handleBlur = (e) => {

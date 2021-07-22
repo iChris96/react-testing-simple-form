@@ -181,13 +181,32 @@ describe("when the user submits the form and the server returns an unexpected er
             )),
         )
 
-
         const submitButton = screen.getByRole('button', { name: /submit/i })
 
         fireEvent.click(submitButton)
 
         await waitFor(() => {
             const errorMessage = screen.getByText(/the form is invalid, the fields name, size, type are required/i);
+            expect(errorMessage).toBeInTheDocument();
+        })
+    })
+})
+
+describe("when the user submits the form and the server returns conexion error", () => {
+
+    beforeEach(() => render(<Form />));
+
+    it("the form page must display the error message 'connection error, please try later'", async () => {
+        server.use( // this override the current behavior for defined '/products' endpoint
+            rest.post('/products', (req, res, ctx) => res.networkError('Failed to connect')),
+        )
+
+        const submitButton = screen.getByRole('button', { name: /submit/i })
+
+        fireEvent.click(submitButton)
+
+        await waitFor(() => {
+            const errorMessage = screen.getByText(/connection error, please try later/i);
             expect(errorMessage).toBeInTheDocument();
         })
     })
